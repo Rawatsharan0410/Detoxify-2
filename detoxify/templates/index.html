@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detoxify - Distraction-Free YouTube</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0f0f, #1b1b1b);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #ff4444, #ff6b6b);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease-in-out;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.1);
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 12px 15px;
+            width: 100%;
+            max-width: 600px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .search-box input {
+            background: none;
+            border: none;
+            color: white;
+            flex: 1;
+            outline: none;
+            font-size: 18px;
+            padding: 10px;
+        }
+
+        .search-box button {
+            background: linear-gradient(135deg, #ff4444, #ff6b6b);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .search-box button:hover {
+            transform: scale(1.1);
+        }
+
+        .video-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .video-card img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .video-info {
+            padding: 15px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .search-box {
+                flex-direction: column;
+                padding: 15px;
+                width: 90%;
+            }
+
+            .search-box input {
+                margin-bottom: 10px;
+                width: 100%;
+                text-align: center;
+            }
+
+            .video-card {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Home Section -->
+    <div class="container mt-5" id="home">
+        <h1>🚀 Welcome to Detoxify</h1>
+        <p>
+            Detoxify helps you find productive and educational YouTube content by filtering out distractions like memes, pranks, and entertainment videos.
+        </p>
+        <p>
+            Stay focused. Stay productive. Watch what truly matters!
+        </p>
+        <button class="btn-start" onclick="showSearch()">Get Started</button>
+    </div>
+
+    <!-- Search Section (Initially Hidden) -->
+    <div class="container mt-4" id="search-section" style="display: none;">
+        <h1 class="mb-4">🚀 Detoxify - Smarter YouTube Search</h1>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="query" placeholder="Enter search term...">
+                <button onclick="searchVideos()">Search</button>
+            </div>
+        </div>
+
+        <div id="results" class="mt-4 row"></div>
+    </div>
+
+    <script>
+        function showSearch() {
+            document.getElementById("home").style.display = "none";
+            document.getElementById("search-section").style.display = "block";
+        }
+
+        function searchVideos() {
+            let query = $("#query").val();
+            $("#results").html("<h4>Loading...</h4>");
+
+            $.ajax({
+                url: "http://127.0.0.1:5000/search",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ query: query }),
+                success: function(videos) {
+                    let html = "";
+                    if (videos.length === 0) {
+                        html = "<h4>No productive videos found. Try a different query.</h4>";
+                    } else {
+                        videos.forEach(video => {
+                            html += `
+                                <div class="col-lg-4 col-md-6 col-sm-12 mt-3">
+                                    <div class="video-card">
+                                        <img src="${video.thumbnail}" alt="Thumbnail">
+                                        <div class="video-info">
+                                            <h6>${video.title}</h6>
+                                            <p>Channel: ${video.channel}</p>
+                                            <a href="https://www.youtube.com/watch?v=${video.video_id}" class="btn btn-primary btn-sm" target="_blank">Watch</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    $("#results").html(html);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
